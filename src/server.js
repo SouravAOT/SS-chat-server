@@ -14,15 +14,15 @@ const {
     checkDatabase
 } = require("./db");
 
-const {
-    checkCloudinaryConfig
-} = require("./config/cloudinary");
+const { checkCloudinaryConfig } =
+    require("./config/cloudinary");
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const mediaRoutes = require("./routes/media");
 const groupRoutes = require("./routes/groups");
 const callRoutes = require("./routes/calls");
+const messageRoutes = require("./routes/messages");
 
 const setupChat = require("./sockets/chat");
 const setupCalls = require("./sockets/calls");
@@ -58,7 +58,6 @@ const corsOptions = {
 // SECURITY
 
 app.use(helmet());
-
 app.use(cors(corsOptions));
 
 app.use(express.json({
@@ -70,14 +69,12 @@ app.use(express.urlencoded({
     limit: "1mb"
 }));
 
-const apiLimiter = rateLimit({
+app.use("/api", rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
     standardHeaders: true,
     legacyHeaders: false
-});
-
-app.use("/api", apiLimiter);
+}));
 
 // SOCKET.IO
 
@@ -122,22 +119,18 @@ app.get("/", async (req, res) => {
 // API ROUTES
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/users", userRoutes);
-
 app.use("/api/media", mediaRoutes);
-
 app.use("/api/groups", groupRoutes);
-
 app.use("/api/calls", callRoutes);
+app.use("/api/messages", messageRoutes);
 
 // SOCKET SYSTEMS
 
 setupChat(io);
-
 setupCalls(io);
 
-// AUTOMATIC MESSAGE CLEANUP
+// MESSAGE CLEANUP
 
 async function deleteExpiredMessages() {
     try {
@@ -154,14 +147,9 @@ async function deleteExpiredMessages() {
         }
 
     } catch (error) {
-        console.error(
-            "Message cleanup error:",
-            error
-        );
+        console.error("Cleanup error:", error);
     }
 }
-
-// CLEANUP INTERVAL
 
 let cleanupInterval;
 
@@ -197,7 +185,6 @@ async function startServer() {
         checkCloudinaryConfig();
 
         await initializeDatabase();
-
         await checkDatabase();
 
         await deleteExpiredMessages();
@@ -214,7 +201,7 @@ async function startServer() {
                 `SS Chat Server running on port ${PORT}`
             );
 
-            console.log("Database: Connected");
+            console.log("PostgreSQL: Connected");
             console.log("Cloudinary: Configured");
             console.log("Socket.IO: Ready");
         });
@@ -232,7 +219,7 @@ async function startServer() {
 // GRACEFUL SHUTDOWN
 
 async function shutdown() {
-    console.log("Shutting down SS Chat Server...");
+    console.log("Shutting down server...");
 
     if (cleanupInterval) {
         clearInterval(cleanupInterval);
