@@ -1,5 +1,8 @@
 node_modules/
 .env
+.env.*
+!.env.example
+
 .DS_Store
 npm-debug.log*
 yarn-error.log*
@@ -7,3 +10,5 @@ coverage/
 dist/
 build/
 *.log
+
+uploads/
